@@ -51,6 +51,41 @@ Required/optional for FastAPI:
 
 See `.env.example` for the full list.
 
+## Obtain Credentials from Evaluation Service
+
+If you were provided an access code (e.g., `BUeZuD`), register to obtain `clientID` and `clientSecret`.
+
+Create `register.py` and run:
+```python
+import requests
+
+url = "http://20.244.56.144/evaluation-service/register"
+payload = {
+  "accessCode": "BUeZuD",
+  "email": "your_email@example.com",
+  "name": "Your Name",
+  "mobileNo": "9999999999",
+  "githubUsername": "your-github"
+}
+
+r = requests.post(url, json=payload, timeout=15)
+print(r.status_code, r.text)
+data = r.json()
+print("clientId:", data.get("clientId") or data.get("clientID"))
+print("clientSecret:", data.get("clientSecret"))
+```
+- Paste the returned values into your environment (root `.env` or `node-logger/.env`):
+```
+ACCESS_CODE=BUeZuD
+CLIENT_ID=<from-response>
+CLIENT_SECRET=<from-response>
+EMAIL=your_email@example.com
+NAME=Your Name
+ROLLNO=YourRollNo
+LOGGER_PORT=4000
+FASTAPI_PORT=8000
+```
+
 ## Run Locally (no Docker)
 
 Use two terminals.
@@ -59,7 +94,6 @@ Terminal A — Node logger:
 ```
 cd node-logger
 npm install
-# Optional: create node-logger/.env with creds, or set in shell
 npx ts-node src/server.ts
 ```
 - Health: http://localhost:4000/health
@@ -75,6 +109,19 @@ $env:BASE_URL = "http://localhost:8000"
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 - Health: http://localhost:8000/health
+
+## Test Real Shortening
+
+- Create a short URL:
+```
+curl -Method POST "http://localhost:8000/shorten" -ContentType "application/json" -Body (@{ url="https://example.com" } | ConvertTo-Json)
+```
+Response:
+```
+{ "short_url": "http://localhost:8000/s/<code>" }
+```
+- Open the `short_url` in a browser; it redirects to the original URL.
+- Set `BASE_URL` to a public domain (e.g., `https://yourdomain.com`) when deployed so that `short_url` is globally usable.
 
 ## Run with Docker
 
@@ -105,18 +152,17 @@ docker compose up --build
 
 - In-memory plus JSON persistence at `URL_STORE_PATH` (default `fastapi-backend/data/url_store.json`).
 - Idempotent creation: same URL returns same code.
-- Codes reset only if you delete the JSON or change the storage path.
 
 ## Configuration Tips
 
-- Set `BASE_URL` to your public domain in production so `short_url` is globally usable, e.g. `https://yourdomain.com`.
+- Set `BASE_URL` to your public domain in production so `short_url` is globally usable.
 - For Docker: add `BASE_URL` to root `.env` and ensure it’s passed to the FastAPI service.
 
 ## Troubleshooting
 
-- Node package install fails for `affordmed-logger`: The code will fallback to console logging; we intentionally removed the dependency for portability.
-- Windows + Docker Desktop: ensure Linux engine and WSL2 backend are enabled.
-- OneDrive path issues: move project to a non-OneDrive folder if file locking occurs.
+- If registration returns 400 with missing fields, include `email`, `name`, `mobileNo`, `githubUsername`.
+- If the AffordMed package isn’t available, Node will use console fallback; the system still works end-to-end.
+- On Windows, prefer a non-OneDrive folder if file locking occurs.
 
 ## License
 
