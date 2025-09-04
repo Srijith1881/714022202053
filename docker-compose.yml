@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  node-logger:
+    build:
+      context: ./node-logger
+      dockerfile: Dockerfile
+    container_name: node-logger
+    env_file:
+      - .env
+    ports:
+      - "${LOGGER_PORT:-4000}:4000"
+    restart: unless-stopped
+
+  fastapi-backend:
+    build:
+      context: ./fastapi-backend
+      dockerfile: Dockerfile
+    container_name: fastapi-backend
+    env_file:
+      - .env
+    environment:
+      - LOGGER_BASE_URL=http://node-logger:4000
+      - FASTAPI_PORT=${FASTAPI_PORT:-8000}
+    depends_on:
+      - node-logger
+    ports:
+      - "${FASTAPI_PORT:-8000}:8000"
+    restart: unless-stopped
+
+networks:
+  default:
+    name: affordmed-net 
