@@ -1,3 +1,4 @@
+<img width="1235" height="555" alt="image" src="https://github.com/user-attachments/assets/865f17ec-d335-40b3-bba6-b00694e9be25" />
 # AffordMed FastAPI + Node Logger
 
 A production-ready demo that wires a FastAPI backend (Python) to a Node.js logging service (TypeScript wrapper around AffordMed Logger). All FastAPI logs (requests, responses, errors, and custom logs) are forwarded to the Node service, which then forwards to AffordMed (with console fallback in this repo).
